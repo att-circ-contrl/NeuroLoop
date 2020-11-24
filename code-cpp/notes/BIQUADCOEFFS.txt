@@ -1,0 +1,28 @@
+Biquad filters are defined by numerator and denominator coefficients. The
+transfer function of a biquad stage is:
+
+H(z) = ( n0 + n1*z^-1 + n2*z^-2 ) / ( d0 + d1*z^-1 + d2*z^-2 )
+
+IIR filter banks are implemented as cascaded biquad stages.
+
+
+Biquad filter coefficients may be saved to and read from .csv files. The first
+row of the file contains quoted column name strings. Subsequent rows contain
+data.
+
+
+When reading, the following columns must be present (others are ignored):
+
+"bank" contains the bank index for the biquad being set (starting at 0).
+"stage" contains the stage index for the biquad being set (starting at 0).
+"num0", "num1", and "num2" contain integer values used as numerator
+  coefficients for the biquad being set.
+"den0", "den1", and "den2" contain integer values used as denominator
+  coefficients for the biquad being set.
+
+Coefficients are integers. The "den0" coefficient must be a positive power
+of 2. Other coefficients may be any value in the integer samptype_t range.
+
+
+When writing, the columns described above are written. Additional
+user-specified columns may be written that have a constant value in all rows.

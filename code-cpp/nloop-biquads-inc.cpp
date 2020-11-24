@@ -8,18 +8,18 @@
 // NOTE - Because this implements template code, it has to be included by
 // every file that instatiates templates.
 // Only one copy of each instantiated variant will actually be compiled;
-// extra copies get pruned at compile-time.
+// extra copies get pruned at link-time.
 
 
 //
-// nloop_IIRBiquad Class
+// nloop_IIRBiquad_t Class
 
 
 // Process linear buffers.
 // NOTE - Elements [0], [-1], and [-2] are read/written.
 
 template <class samptype_t, class indextype_t>
-void nloop_IIRBiquad<samptype_t, indextype_t>::ApplyBiquadOnceLinear(
+void nloop_IIRBiquad_t<samptype_t, indextype_t>::ApplyBiquadOnceLinear(
   samptype_t *inbuf, samptype_t *outbuf)
 {
   samptype_t innow, inprev1, inprev2, outprev1, outprev2;
@@ -36,9 +36,23 @@ void nloop_IIRBiquad<samptype_t, indextype_t>::ApplyBiquadOnceLinear(
   outnow += num2 * inprev2;
   outnow -= den1 * outprev1;
   outnow -= den2 * outprev2;
-  // NOTE - If you're using a signed type, you'd better have set compiler
-  // flags to force arithmetic shifting!
+  // NOTE - If this is a signed type, you either need NLOOP_BIQUAD_SIGN_SAFE
+  // or else need to have forced "arithmetic" shifts in the compiler.
+#ifdef NLOOP_BIQUAD_SIGN_SAFE
+  // Sign-safe code. This is somewhat slower.
+  if (outnow < 0)
+  {
+    outnow = -outnow;
+    outnow >>= den0_bits;
+    outnow = -outnow;
+  }
+  else
+    outnow >>= den0_bits;
+#else
+  // Sign-unsafe code. Only works on signed operands if shift-right preserves
+  // the sign bit ("arithmetic shift-right").
   outnow >>= den0_bits;
+#endif
 
   *outbuf = outnow;
 }
@@ -50,7 +64,7 @@ void nloop_IIRBiquad<samptype_t, indextype_t>::ApplyBiquadOnceLinear(
 // Elements [n], [n-1], and [n-2] are read/written.
 
 template <class samptype_t, class indextype_t>
-void nloop_IIRBiquad<samptype_t, indextype_t>::ApplyBiquadOnceCircular(
+void nloop_IIRBiquad_t<samptype_t, indextype_t>::ApplyBiquadOnceCircular(
   samptype_t *inbuf, indextype_t inptr, indextype_t inbufmask,
   samptype_t *outbuf, indextype_t outptr, indextype_t outbufmask )
 {
@@ -79,9 +93,23 @@ void nloop_IIRBiquad<samptype_t, indextype_t>::ApplyBiquadOnceCircular(
   outnow += num2 * inprev2;
   outnow -= den1 * outprev1;
   outnow -= den2 * outprev2;
-  // NOTE - If you're using a signed type, you'd better have set compiler
-  // flags to force arithmetic shifting!
+  // NOTE - If this is a signed type, you either need NLOOP_BIQUAD_SIGN_SAFE
+  // or else need to have forced "arithmetic" shifts in the compiler.
+#ifdef NLOOP_BIQUAD_SIGN_SAFE
+  // Sign-safe code. This is somewhat slower.
+  if (outnow < 0)
+  {
+    outnow = -outnow;
+    outnow >>= den0_bits;
+    outnow = -outnow;
+  }
+  else
+    outnow >>= den0_bits;
+#else
+  // Sign-unsafe code. Only works on signed operands if shift-right preserves
+  // the sign bit ("arithmetic shift-right").
   outnow >>= den0_bits;
+#endif
 
 
   outbuf[saved_outptr] = outnow;
@@ -92,7 +120,7 @@ void nloop_IIRBiquad<samptype_t, indextype_t>::ApplyBiquadOnceCircular(
 // Read accessor.
 
 template <class samptype_t, class indextype_t>
-void nloop_IIRBiquad<samptype_t, indextype_t>::GetCoefficients(
+void nloop_IIRBiquad_t<samptype_t, indextype_t>::GetCoefficients(
   uint8_t &old_den0bits, samptype_t &old_den1, samptype_t &old_den2,
   samptype_t &old_num0, samptype_t &old_num1, samptype_t &old_num2 )
 {
@@ -110,7 +138,7 @@ void nloop_IIRBiquad<samptype_t, indextype_t>::GetCoefficients(
 // Write accessor.
 
 template <class samptype_t, class indextype_t>
-void nloop_IIRBiquad<samptype_t, indextype_t>::SetCoefficients(
+void nloop_IIRBiquad_t<samptype_t, indextype_t>::SetCoefficients(
   uint8_t new_den0bits, samptype_t new_den1, samptype_t new_den2,
   samptype_t new_num0, samptype_t new_num1, samptype_t new_num2 )
 {
@@ -126,7 +154,7 @@ void nloop_IIRBiquad<samptype_t, indextype_t>::SetCoefficients(
 
 
 //
-// nloop_IIRBiquadChain Class
+// nloop_IIRBiquadChain_t Class
 
 
 // Process buffers.
@@ -135,7 +163,7 @@ void nloop_IIRBiquad<samptype_t, indextype_t>::SetCoefficients(
 // buffers. As a result, this takes time to stabilize.
 
 template <class samptype_t, class indextype_t, int stagecount>
-void nloop_IIRBiquadChain<samptype_t, indextype_t, stagecount>::
+void nloop_IIRBiquadChain_t<samptype_t, indextype_t, stagecount>::
   ApplyChainOnce(samptype_t &indata, samptype_t &outdata)
 {
   int sidx;
@@ -163,7 +191,7 @@ void nloop_IIRBiquadChain<samptype_t, indextype_t, stagecount>::
 // Read the number of active stages.
 
 template <class samptype_t, class indextype_t, int stagecount>
-int nloop_IIRBiquadChain<samptype_t, indextype_t, stagecount>::
+int nloop_IIRBiquadChain_t<samptype_t, indextype_t, stagecount>::
   GetActiveStages(void)
 {
   return stages_active;
@@ -174,7 +202,7 @@ int nloop_IIRBiquadChain<samptype_t, indextype_t, stagecount>::
 // Set the number of active stages.
 
 template <class samptype_t, class indextype_t, int stagecount>
-void nloop_IIRBiquadChain<samptype_t, indextype_t, stagecount>::
+void nloop_IIRBiquadChain_t<samptype_t, indextype_t, stagecount>::
   SetActiveStages(int new_stages)
 {
   stages_active = new_stages;
@@ -191,7 +219,7 @@ void nloop_IIRBiquadChain<samptype_t, indextype_t, stagecount>::
 // Read biquad coefficients for one stage.
 
 template <class samptype_t, class indextype_t, int stagecount>
-void nloop_IIRBiquadChain<samptype_t, indextype_t, stagecount>::
+void nloop_IIRBiquadChain_t<samptype_t, indextype_t, stagecount>::
   GetCoefficients( int stagenum,
   uint8_t &old_den0bits, samptype_t &old_den1, samptype_t &old_den2,
   samptype_t &old_num0, samptype_t &old_num1, samptype_t &old_num2 )
@@ -213,7 +241,7 @@ void nloop_IIRBiquadChain<samptype_t, indextype_t, stagecount>::
 // Write biquad coefficients for one stage.
 
 template <class samptype_t, class indextype_t, int stagecount>
-void nloop_IIRBiquadChain<samptype_t, indextype_t, stagecount>::
+void nloop_IIRBiquadChain_t<samptype_t, indextype_t, stagecount>::
   SetCoefficients( int stagenum,
   uint8_t new_den0bits, samptype_t new_den1, samptype_t new_den2,
   samptype_t new_num0, samptype_t new_num1, samptype_t new_num2 )
@@ -225,19 +253,227 @@ void nloop_IIRBiquadChain<samptype_t, indextype_t, stagecount>::
 
 
 
-// Stuff one layer of the internal buffers.
-// The idea is to initialize them to values that will settle quickly.
+// Stuff all layers of the internal buffers with "settled" values.
+// Stages are either stuffed with the input value (suitable for low-pass
+// stages) or with zero (suitable for high-pass and band-pass stages).
 
 template <class samptype_t, class indextype_t, int stagecount>
-void nloop_IIRBiquadChain<samptype_t, indextype_t, stagecount>::
-  StuffBufferStage(int stagenum, samptype_t value)
+void nloop_IIRBiquadChain_t<samptype_t, indextype_t, stagecount>::
+  FastSettleBuffers(samptype_t &indata, bool (&copy_input)[stagecount])
 {
-  int sidx;
+  int stidx, vidx;
+  samptype_t thisdata;
 
-  // Valid stages are 0..stagecount.
-  if ((0 <= stagenum) && (stagecount >= stagenum))
-    for (sidx = 0; sidx < NLOOP_IIRBIQUADCHAIN_BUFSIZE; sidx++)
-      buffers[stagenum][sidx] = value;
+  // Copy the input into buffer 0 (that's what it normally holds).
+  for (vidx = 0; vidx < NLOOP_IIRBIQUADCHAIN_BUFSIZE; vidx++)
+    buffers[0][vidx] = indata;
+
+
+  // For subsequent stages, either copy the input or write zero.
+  for (stidx = 0; stidx < stagecount; stidx++)
+  {
+    thisdata = 0;
+    if (copy_input[stidx])
+      thisdata = indata;
+
+    // Output buffers are 1..stagecount.
+    for (vidx = 0; vidx < NLOOP_IIRBIQUADCHAIN_BUFSIZE; vidx++)
+      buffers[stidx + 1][vidx] = thisdata;
+  }
+}
+
+
+
+//
+// nloop_IIRFilterBank_t class.
+
+
+// Process buffers.
+// This will still work with zero active stages (copying input to output).
+// NOTE - This only manipulates active channels and banks. Unused parts of
+// the output array will get stale.
+
+template <class samptype_t, class indextype_t,
+  int stagecount, int bankcount, int chancount>
+void nloop_IIRFilterBank_t<samptype_t, indextype_t,
+  stagecount, bankcount, chancount>::
+  ApplyBankOnce(
+    nloop_SampleSlice_t<samptype_t, 1, chancount> &indata,
+    nloop_SampleSlice_t<samptype_t, bankcount, chancount> &outdata
+  )
+{
+  int bidx, cidx;
+
+  for (bidx = 0; bidx < banks_active; bidx++)
+    for (cidx = 0; cidx < chans_active; cidx++)
+      biquads[bidx][cidx].ApplyChainOnce( indata.data[0][cidx],
+        outdata.data[bidx][cidx] );
+}
+
+
+
+// Read the number of active stages.
+
+template <class samptype_t, class indextype_t,
+  int stagecount, int bankcount, int chancount>
+int nloop_IIRFilterBank_t<samptype_t, indextype_t,
+  stagecount, bankcount, chancount>::
+  GetActiveStages(void)
+{
+  // Read from the first biquad chain. They all should be the same.
+  return biquads[0][0].GetActiveStages();
+}
+
+
+
+// Set the number of active stages.
+// This is set for all channels and banks, not just active ones.
+
+template <class samptype_t, class indextype_t,
+  int stagecount, int bankcount, int chancount>
+void nloop_IIRFilterBank_t<samptype_t, indextype_t,
+  stagecount, bankcount, chancount>::
+  SetActiveStages(int new_stages)
+{
+  int bidx, cidx;
+
+  if (0 > new_stages)
+    new_stages = 0;
+  else if (new_stages > stagecount)
+    new_stages = stagecount;
+
+  // Adjust all biquad chains.
+  for (bidx = 0; bidx < bankcount; bidx++)
+    for (cidx = 0; cidx < chancount; cidx++)
+      biquads[bidx][cidx].SetActiveStages(new_stages);
+}
+
+
+
+// Read the number of active channels.
+
+template <class samptype_t, class indextype_t,
+  int stagecount, int bankcount, int chancount>
+int nloop_IIRFilterBank_t<samptype_t, indextype_t,
+  stagecount, bankcount, chancount>::
+  GetActiveChans(void)
+{
+  return chans_active;
+}
+
+
+
+// Set the number of active channels.
+
+template <class samptype_t, class indextype_t,
+  int stagecount, int bankcount, int chancount>
+void nloop_IIRFilterBank_t<samptype_t, indextype_t,
+  stagecount, bankcount, chancount>::
+  SetActiveChans(int new_chans)
+{
+  if (0 > new_chans)
+    new_chans = 0;
+  else if (new_chans > chancount)
+    new_chans = chancount;
+
+  chans_active = new_chans;
+}
+
+
+
+// Read the number of active banks.
+
+template <class samptype_t, class indextype_t,
+  int stagecount, int bankcount, int chancount>
+int nloop_IIRFilterBank_t<samptype_t, indextype_t,
+  stagecount, bankcount, chancount>::
+  GetActiveBanks(void)
+{
+  return banks_active;
+}
+
+
+
+// Set the number of active banks.
+
+template <class samptype_t, class indextype_t,
+  int stagecount, int bankcount, int chancount>
+void nloop_IIRFilterBank_t<samptype_t, indextype_t,
+  stagecount, bankcount, chancount>::
+  SetActiveBanks(int new_banks)
+{
+  if (0 > new_banks)
+    new_banks = 0;
+  else if (new_banks > bankcount)
+    new_banks = bankcount;
+
+  banks_active = new_banks;
+}
+
+
+
+// Read filter coefficients for one bank.
+
+template <class samptype_t, class indextype_t,
+  int stagecount, int bankcount, int chancount>
+void nloop_IIRFilterBank_t<samptype_t, indextype_t,
+  stagecount, bankcount, chancount>::
+  GetCoefficients( int stagenum, int banknum,
+    uint8_t &old_den0bits, samptype_t &old_den1, samptype_t &old_den2,
+    samptype_t &old_num0, samptype_t &old_num1, samptype_t &old_num2 )
+{
+  if ((banknum >= 0) && (banknum < bankcount))
+    // Read from the first channel. They should all be the same for this bank.
+    biquads[banknum][0].GetCoefficients( stagenum,
+      old_den0bits, old_den1, old_den2, old_num0, old_num1, old_num2 );
+}
+
+
+
+// Set filter coefficients for one bank.
+// Coefficients are updated for all channels, not just active channels.
+
+template <class samptype_t, class indextype_t,
+  int stagecount, int bankcount, int chancount>
+void nloop_IIRFilterBank_t<samptype_t, indextype_t,
+  stagecount, bankcount, chancount>::
+  SetCoefficients( int stagenum, int banknum,
+    uint8_t new_den0bits, samptype_t new_den1, samptype_t new_den2,
+    samptype_t new_num0, samptype_t new_num1, samptype_t new_num2 )
+{
+  int cidx;
+
+  if ((banknum >= 0) && (banknum < bankcount))
+  {
+    // Set coefficients for all channels in this bank.
+    for (cidx = 0; cidx < chancount; cidx++)
+      biquads[banknum][0].SetCoefficients( stagenum,
+        new_den0bits, new_den1, new_den2, new_num0, new_num1, new_num2 );
+  }
+}
+
+
+
+// Stuff all layers of the internal buffers with "settled" values.
+// Stages are either stuffed with the input value (suitable for low-pass
+// stages) or with zero (suitable for high-pass and band-pass stages).
+// This updates all channels, not just active channels.
+
+template <class samptype_t, class indextype_t,
+  int stagecount, int bankcount, int chancount>
+void nloop_IIRFilterBank_t<samptype_t, indextype_t,
+  stagecount, bankcount, chancount>::
+  FastSettleBuffers(
+    nloop_SampleSlice_t<samptype_t, 1, chancount> &indata,
+    bool (&copy_input)[stagecount]
+  )
+{
+  int bidx, cidx;
+
+  for (bidx = 0; bidx < bankcount; bidx++)
+    for (cidx = 0; cidx < chancount; cidx++)
+      biquads[bidx][cidx].FastSettleBuffers( indata.data[0][cidx],
+        copy_input );
 }
 
 
