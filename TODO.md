@@ -22,7 +22,10 @@ doesn't actually know the type we should cast to.
 
 ## Abbreviated changelog:
 
-* 30 Dec 2020 --
+* 3 Dec 2020 --
+(C++) Added auto-ranging preprocessor.
+
+* 30 Nov 2020 --
 (C++) Added type min/max/sign check macros, and added checks to
 sign-sensitive code.
 Made top-level headers, and added multiple-include wrappers to child headers.
