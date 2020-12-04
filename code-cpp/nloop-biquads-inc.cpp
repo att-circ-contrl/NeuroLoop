@@ -36,23 +36,13 @@ void nloop_IIRBiquad_t<samptype_t, indextype_t>::ApplyBiquadOnceLinear(
   outnow += num2 * inprev2;
   outnow -= den1 * outprev1;
   outnow -= den2 * outprev2;
-  // NOTE - If this is a signed type, you either need NLOOP_BIQUAD_SIGN_SAFE
-  // or else need to have forced "arithmetic" shifts in the compiler.
-#ifdef NLOOP_BIQUAD_SIGN_SAFE
-  // Sign-safe code. This is somewhat slower.
-  if (outnow < 0)
-  {
-    outnow = -outnow;
-    outnow >>= den0_bits;
-    outnow = -outnow;
-  }
+
+  // FIXME - This will be very slow for unsigned operands!
+  // Use pointer tricks to treat it as signed instead.
+  if (NLOOP_ISSIGNED(samptype_t))
+  { NLOOP_ARITHSHR(outnow, den0_bits); }
   else
-    outnow >>= den0_bits;
-#else
-  // Sign-unsafe code. Only works on signed operands if shift-right preserves
-  // the sign bit ("arithmetic shift-right").
-  outnow >>= den0_bits;
-#endif
+  { NLOOP_ARITHSHR_UNSIGNED(outnow, den0_bits); }
 
   *outbuf = outnow;
 }
@@ -93,23 +83,13 @@ void nloop_IIRBiquad_t<samptype_t, indextype_t>::ApplyBiquadOnceCircular(
   outnow += num2 * inprev2;
   outnow -= den1 * outprev1;
   outnow -= den2 * outprev2;
-  // NOTE - If this is a signed type, you either need NLOOP_BIQUAD_SIGN_SAFE
-  // or else need to have forced "arithmetic" shifts in the compiler.
-#ifdef NLOOP_BIQUAD_SIGN_SAFE
-  // Sign-safe code. This is somewhat slower.
-  if (outnow < 0)
-  {
-    outnow = -outnow;
-    outnow >>= den0_bits;
-    outnow = -outnow;
-  }
+
+  // FIXME - This will be very slow for unsigned operands!
+  // Use pointer tricks to treat it as signed instead.
+  if (NLOOP_ISSIGNED(samptype_t))
+  { NLOOP_ARITHSHR(outnow, den0_bits); }
   else
-    outnow >>= den0_bits;
-#else
-  // Sign-unsafe code. Only works on signed operands if shift-right preserves
-  // the sign bit ("arithmetic shift-right").
-  outnow >>= den0_bits;
-#endif
+  { NLOOP_ARITHSHR_UNSIGNED(outnow, den0_bits); }
 
 
   outbuf[saved_outptr] = outnow;

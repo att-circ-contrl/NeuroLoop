@@ -1,5 +1,5 @@
 // Attention Circuits Control Laboratory - NeuroLoop project
-// File I/O helper functions - templated functions.
+// File I/O helper functions - Templated functions.
 // Written by Christopher Thomas.
 // Copyright (c) 2020 by Vanderbilt University. This work is licensed under
 // the Creative Commons Attribution 4.0 International License.
@@ -130,15 +130,16 @@ void nloop_ReadBiquadCoeffs(istream &infile, filtbanktype_t &filtbank,
       // FIXME - Assuming signed 64-bit is larger than samptype_t.
       // If the user is using uint64_t, this will lose half the range.
 
-      num0 = (samptype_t) stoll(thisrow["num0"]);
-      num1 = (samptype_t) stoll(thisrow["num1"]);
-      num2 = (samptype_t) stoll(thisrow["num2"]);
+      num0 = nloop_LLToSample<samptype_t>( stoll(thisrow["num0"]) );
+      num1 = nloop_LLToSample<samptype_t>( stoll(thisrow["num1"]) );
+      num2 = nloop_LLToSample<samptype_t>( stoll(thisrow["num2"]) );
 
-      den0 = (samptype_t) stoll(thisrow["den0"]);
-      den1 = (samptype_t) stoll(thisrow["den1"]);
-      den2 = (samptype_t) stoll(thisrow["den2"]);
+      den0 = nloop_LLToSample<samptype_t>( stoll(thisrow["den0"]) );
+      den1 = nloop_LLToSample<samptype_t>( stoll(thisrow["den1"]) );
+      den2 = nloop_LLToSample<samptype_t>( stoll(thisrow["den2"]) );
 
       // Get the bit-shift value.
+      // This tolerates negative den0.
       den0bits = 0; // den0 = 1.
       while (den0 > 1)
       {
@@ -242,12 +243,19 @@ void nloop_WriteBiquadCoeffs(ostream &outfile, filtbanktype_t &filtbank,
         colseries["bank"].push_back(to_string(bidx));
         colseries["stage"].push_back(to_string(sidx));
 
-        colseries["num0"].push_back(to_string(num0));
-        colseries["num1"].push_back(to_string(num1));
-        colseries["num2"].push_back(to_string(num2));
-        colseries["den0"].push_back(to_string(den0));
-        colseries["den1"].push_back(to_string(den1));
-        colseries["den2"].push_back(to_string(den2));
+        colseries["num0"].push_back(to_string(
+          nloop_SampleToLL<samptype_t>(num0) ));
+        colseries["num1"].push_back(to_string(
+          nloop_SampleToLL<samptype_t>(num1) ));
+        colseries["num2"].push_back(to_string(
+          nloop_SampleToLL<samptype_t>(num2) ));
+
+        colseries["den0"].push_back(to_string(
+          nloop_SampleToLL<samptype_t>(den0) ));
+        colseries["den1"].push_back(to_string(
+          nloop_SampleToLL<samptype_t>(den1) ));
+        colseries["den2"].push_back(to_string(
+          nloop_SampleToLL<samptype_t>(den2) ));
 
         // Extra columns.
 
@@ -260,6 +268,64 @@ void nloop_WriteBiquadCoeffs(ostream &outfile, filtbanktype_t &filtbank,
 
   // Write the table.
   nloop_WriteCSV(outfile, colnames, colseries, want_header);
+}
+
+
+
+// This converts samptype_t to signed long long, interpreting samptype_t
+// as signed.
+
+template<class samptype_t> long long nloop_SampleToLL(samptype_t data)
+{
+  long long result;
+  samptype_t maxval;
+
+  // FIXME - Assume the data value fits.
+  // If the user is using uint64_t, we'll lose half the range.
+  // NOTE - Don't assume that long long is int64_t.
+
+  result = (long long) data;
+
+  // If we have unsigned samples, figure out if this is a negative value.
+  if (!( NLOOP_ISSIGNED(samptype_t) ))
+  {
+    maxval = NLOOP_MAXVAL(samptype_t);
+    if (data > (maxval >> 1))
+    {
+      // We're operating modulo (maxval+1).
+      result -= maxval;
+      result--;
+    }
+  }
+
+  return result;
+}
+
+
+
+// This converts signed long long to samptype_t appropriately.
+
+template<class samptype_t> samptype_t nloop_LLToSample(long long data)
+{
+  samptype_t result;
+  samptype_t maxval;
+
+  if ( NLOOP_ISSIGNED(samptype_t) )
+    result = (samptype_t) data;
+  else
+  {
+    maxval = NLOOP_MAXVAL(samptype_t);
+    if (data < 0)
+    {
+      // We're operating modulo (maxval+1).
+      data += maxval;
+      data++;
+    }
+
+    result = (samptype_t) data;
+  }
+
+  return result;
 }
 
 

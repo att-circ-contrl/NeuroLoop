@@ -3,12 +3,18 @@
 
 ## To-do list and bug list for version 1:
 
-* Some code isn't sign-agnostic. Reading den0 for biquads from files uses
-type int64_t, so it'll get the wrong value for extremely large uint64_t
-values.
+* (C++) Reading den0 for biquads from files uses type int64_t, so it'll get
+the wrong value for extremely large uint64_t biquad coefficients.
 
-* Add "is_signed<T>" or "numeric_limits<T>.is_signed" checks where
-appropriate for sign-sensitive code.
+* (C++) NLOOP_ARITHSHR_UNSIGNED is much slower than a native arithmetic shift.
+This should be replaced with pointer casting to a signed type, but the macro
+doesn't actually know the type we should cast to.
+
+* (C++) Add artifact rejection module.
+
+* (C++) Add oscillation detection module.
+
+* (C++) Add trigger module.
 
 
 ## Deferred to version 2:
@@ -16,8 +22,13 @@ appropriate for sign-sensitive code.
 
 ## Abbreviated changelog:
 
+* 30 Dec 2020 --
+(C++) Added type min/max/sign check macros, and added checks to
+sign-sensitive code.
+Made top-level headers, and added multiple-include wrappers to child headers.
+
 * 24 Nov 2020 --
-Biquad IIR filter banks pass initial smoke tests.
+(C++) Biquad IIR filter banks pass initial smoke tests.
 Added support for reading/writing biquad coefficients from/to CSV files.
 
 * 23 Oct 2020 --

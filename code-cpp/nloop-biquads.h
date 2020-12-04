@@ -4,6 +4,10 @@
 // Copyright (c) 2020 by Vanderbilt University. This work is licensed under
 // the Creative Commons Attribution 4.0 International License.
 
+// Wrapper.
+#ifndef NLOOP_BIQUADS_H
+#define NLOOP_BIQUADS_H
+
 
 //
 // IIR Biquad Filter Classes
@@ -19,7 +23,7 @@
 //
 // NOTE - If you use a signed sample type rather than unsigned, do one of
 // two things:
-// a) Define "NLOOP_BIQUAD_SIGN_SAFE".
+// a) Define "NLOOP_SIGN_SAFE_SHIFT".
 // or
 // b) Set compiler flags to force "arithmetic" shift-right operations for
 // signed data (sign-preserving shift).
@@ -215,6 +219,9 @@ public:
 
 #include "nloop-biquads-inc.cpp"
 
+
+// End of wrapper.
+#endif
 
 //
 // This is the end of the file.

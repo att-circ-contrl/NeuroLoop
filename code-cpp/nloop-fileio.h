@@ -6,25 +6,10 @@
 
 // NOTE - The implementation of these needs <regex> from C++11.
 
-
 //
-// Includes
-
-// Standard library includes.
-#include <iostream>
-#include <string>
-#include <list>
-#include <vector>
-#include <map>
-#include <regex>
-
-
-//
-// Namespaces
-
-// Things get very verbose very quickly without this.
-using namespace std;
-
+// Wrapper.
+#ifndef NLOOP_FILEIO_H
+#define NLOOP_FILEIO_H
 
 
 //
@@ -33,6 +18,8 @@ using namespace std;
 // NOTE - File I/O functions will work with any stream-type objects, not just
 // file streams.
 
+
+// CSV I/O functions.
 
 // This reads all columns from a CSV file, discarding order information.
 // A header line must exist, containing column names.
@@ -52,11 +39,14 @@ map<string,string> nloop_GetCSVRowCells(
   map<string,vector<string>> &datatable, size_t ridx);
 
 
+// Biquad I/O functions.
 
 // These read and write IIR biquad filter bank coefficients.
 // When reading, columns unrelated to coefficients are ignored.
 // When writing, extra columns with constant values may be added.
 // See notes/BIQUADCOEFFS.txt for file format information.
+
+// CSV biquad coefficients may be negative even with unsigned samptype_t.
 
 // Treat all table rows as applying to this filter.
 // Don't remap bank numbers.
@@ -84,6 +74,17 @@ void nloop_WriteBiquadCoeffs(ostream &outfile, filtbanktype_t &filtbank,
 
 
 
+// I/O helper functions.
+
+// This converts samptype_t to signed long long, interpreting samptype_t
+// as signed.
+template<class samptype_t> long long nloop_SampleToLL(samptype_t data);
+
+// This converts signed long long to samptype_t appropriately.
+template<class samptype_t> samptype_t nloop_LLToSample(long long data);
+
+
+
 //
 // Code Inclusion
 
@@ -94,6 +95,9 @@ void nloop_WriteBiquadCoeffs(ostream &outfile, filtbanktype_t &filtbank,
 
 #include "nloop-fileio-inc.cpp"
 
+
+// End of wrapper.
+#endif
 
 //
 // This is the end of the file.
