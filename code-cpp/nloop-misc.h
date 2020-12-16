@@ -135,7 +135,7 @@ template<class T> inline T nloop_SearchMinSignedHelper(void)
 
 
 //
-// Data Buffer Classes
+// Data Buffer Class
 
 
 // FIXME - There's no such thing as a templated typedef, so these have to
@@ -149,7 +149,32 @@ class nloop_SampleSlice_t
 {
 public:
   samptype_t data[bankcount][chancount];
+
+  void SetUniformValue(samptype_t newval);
 };
+
+
+
+//
+// Code Inclusion
+
+// C++ compiles templated classes on-demand. The source code has to be
+// included so that the compiler can do this.
+// Only one copy of each variant will actually be compiled; extra copies get
+// pruned at link-time.
+
+
+// FIXME - This should be in an "-inc.cpp" file.
+template <class samptype_t, int bankcount, int chancount>
+void nloop_SampleSlice_t<samptype_t,bankcount,chancount>::
+SetUniformValue(samptype_t newval)
+{
+  int bidx, cidx;
+
+  for (bidx = 0; bidx < bankcount; bidx++)
+    for (cidx = 0; cidx < chancount; cidx++)
+      data[bidx][cidx] = newval;
+}
 
 
 // End of wrapper.

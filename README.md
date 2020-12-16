@@ -70,4 +70,4 @@ C++ implementation of NeuroLoop modules.
 (FIXME -- Use the Burst Box or a stripped-down variant as sample code.)
 
 
-This is the end of the file.
+_This is the end of the file._

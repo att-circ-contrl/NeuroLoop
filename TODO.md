@@ -12,8 +12,6 @@ doesn't actually know the type we should cast to.
 
 * (C++) Add artifact rejection module.
 
-* (C++) Add oscillation detection module.
-
 * (C++) Add trigger module.
 
 
@@ -21,6 +19,9 @@ doesn't actually know the type we should cast to.
 
 
 ## Abbreviated changelog:
+
+* 16 Dec 2020 --
+(C++) Added peak/trough analytic estimator. Added threshold-based detector.
 
 * 3 Dec 2020 --
 (C++) Added auto-ranging preprocessor.

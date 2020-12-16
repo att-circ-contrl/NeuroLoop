@@ -185,12 +185,12 @@ template <class samptype_t, class indextype_t, int stagecount>
 void nloop_IIRBiquadChain_t<samptype_t, indextype_t, stagecount>::
   SetActiveStages(int new_stages)
 {
-  stages_active = new_stages;
+  if (new_stages < 0)
+    new_stages = 0;
+  else if (new_stages > stagecount)
+    new_stages = stagecount;
 
-  if (0 > new_stages)
-    stages_active = 0;
-  else if (stagecount < new_stages)
-    stages_active = stagecount;
+  stages_active = new_stages;
 }
 
 
@@ -317,7 +317,7 @@ void nloop_IIRFilterBank_t<samptype_t, indextype_t,
 {
   int bidx, cidx;
 
-  if (0 > new_stages)
+  if (new_stages < 0)
     new_stages = 0;
   else if (new_stages > stagecount)
     new_stages = stagecount;
@@ -351,7 +351,7 @@ void nloop_IIRFilterBank_t<samptype_t, indextype_t,
   stagecount, bankcount, chancount>::
   SetActiveChans(int new_chans)
 {
-  if (0 > new_chans)
+  if (new_chans < 0)
     new_chans = 0;
   else if (new_chans > chancount)
     new_chans = chancount;
@@ -382,7 +382,7 @@ void nloop_IIRFilterBank_t<samptype_t, indextype_t,
   stagecount, bankcount, chancount>::
   SetActiveBanks(int new_banks)
 {
-  if (0 > new_banks)
+  if (new_banks < 0)
     new_banks = 0;
   else if (new_banks > bankcount)
     new_banks = bankcount;
