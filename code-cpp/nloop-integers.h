@@ -1,12 +1,12 @@
 // Attention Circuits Control Laboratory - NeuroLoop project
-// Miscellaneous declarations.
+// Integer type tests.
 // Written by Christopher Thomas.
 // Copyright (c) 2020 by Vanderbilt University. This work is licensed under
 // the Creative Commons Attribution 4.0 International License.
 
 // Wrapper.
-#ifndef NLOOP_MISC_H
-#define NLOOP_MISC_H
+#ifndef NLOOP_INTEGERS_H
+#define NLOOP_INTEGERS_H
 
 
 //
@@ -131,50 +131,6 @@ template<class T> inline T nloop_SearchMinSignedHelper(void)
 }
 
 #endif
-
-
-
-//
-// Data Buffer Class
-
-
-// FIXME - There's no such thing as a templated typedef, so these have to
-// be classes even for relatively simple constructs.
-
-// This represents one "slice" of sample data across all channels and
-// filter banks within a signal processing pipeline.
-
-template <class samptype_t, int bankcount, int chancount>
-class nloop_SampleSlice_t
-{
-public:
-  samptype_t data[bankcount][chancount];
-
-  void SetUniformValue(samptype_t newval);
-};
-
-
-
-//
-// Code Inclusion
-
-// C++ compiles templated classes on-demand. The source code has to be
-// included so that the compiler can do this.
-// Only one copy of each variant will actually be compiled; extra copies get
-// pruned at link-time.
-
-
-// FIXME - This should be in an "-inc.cpp" file.
-template <class samptype_t, int bankcount, int chancount>
-void nloop_SampleSlice_t<samptype_t,bankcount,chancount>::
-SetUniformValue(samptype_t newval)
-{
-  int bidx, cidx;
-
-  for (bidx = 0; bidx < bankcount; bidx++)
-    for (cidx = 0; cidx < chancount; cidx++)
-      data[bidx][cidx] = newval;
-}
 
 
 // End of wrapper.

@@ -11,7 +11,7 @@ row of the file contains quoted column name strings. Subsequent rows contain
 data.
 
 
-When reading, the following columns must be present (others are ignored):
+The following columns must be present in the CSV file:
 
 "bank" contains the bank index for the biquad being set (starting at 0).
 "stage" contains the stage index for the biquad being set (starting at 0).
@@ -24,5 +24,14 @@ Coefficients are integers. The "den0" coefficient must be a positive power
 of 2. Other coefficients may be any value in the integer samptype_t range.
 
 
-When writing, the columns described above are written. Additional
-user-specified columns may be written that have a constant value in all rows.
+
+Additional columns may also be present. Among other uses, this makes it easy
+to describe multiple filter banks in a single CSV file. The NeuroLoop biquad
+import/export routines offer the option of filtering imported rows so that
+only those matching specified (column name, cell value) tuples are imported.
+When exporting biquad filter banks, exported rows may contain constant
+(column name, cell value) tuples in addition to coefficient data.
+
+The "Burst Box" and "Burst Station" programs use an extra "type" field to
+distinguish anti-aliasing filter coefficients from band-pass filter bank
+coefficients (with "type" values of "anti-alias" and "bank", respectively).

@@ -12,13 +12,18 @@ doesn't actually know the type we should cast to.
 
 * (C++) Add artifact rejection module.
 
-* (C++) Add trigger module.
+* (C++) Make macro constants for functions/methods that take bool arguments,
+to make code that calls them more readable.
 
 
 ## Deferred to version 2:
 
 
 ## Abbreviated changelog:
+
+* 26 Jan 2020 --
+(C++) Added trigger logic. Split "misc" into "integers" and "slices".
+Moved biquad coefficient notes elsewhere.
 
 * 16 Dec 2020 --
 (C++) Added peak/trough analytic estimator. Added threshold-based detector.

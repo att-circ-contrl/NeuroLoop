@@ -23,11 +23,13 @@
 //
 // NeuroLoop includes.
 
-#include "nloop-misc.h"
+#include "nloop-integers.h"
+#include "nloop-slices.h"
 #include "nloop-preproc.h"
 #include "nloop-biquads.h"
 #include "nloop-analytic-pt.h"
 #include "nloop-threshold.h"
+#include "nloop-trigger.h"
 
 
 //
