@@ -225,11 +225,26 @@ nloop_Trigger_t<indextype_t>::nloop_Trigger_t(void)
 template<class indextype_t>
 void nloop_Trigger_t<indextype_t>::ResetState(void)
 {
-  // Duration and cooldown time in samples.
+  // Configuration state.
+
+  // Duration and cooldown time are in samples.
   trig_duration = 1;
   trig_cooldown_time = 50;
   reraise_ok = false;
 
+
+  // Transient state.
+  ForceIdle();
+}
+
+
+
+// This forces state to "idle" and resets transient state to sane values.
+// Configuration state is left intact.
+
+template<class indextype_t>
+void nloop_Trigger_t<indextype_t>::ForceIdle(void)
+{
   state = NLOOP_TSTATE_IDLE;
 
   timeout_left = 0;
@@ -416,9 +431,32 @@ ResetState(void)
   banks_active = 0;
   chans_active = 0;
 
+  enabled.SetUniformValue(false);
+
   for (bidx = 0; bidx < bankcount; bidx++)
     for (cidx = 0; cidx < chancount; cidx++)
       triggers[bidx][cidx].ResetState();
+}
+
+
+
+// This forces state to "idle" and resets transient state to sane values.
+// Configuration state is left intact.
+
+template<class indextype_t, int bankcount, int chancount>
+void nloop_TriggerBank_t<indextype_t,bankcount,chancount>::
+ForceIdle(void)
+{
+  int bidx, cidx;
+
+  // Halt all triggering.
+  trigger_count_left = 0;
+  window_time_left = 0;
+
+  // Reset individual triggers.
+  for (bidx = 0; bidx < bankcount; bidx++)
+    for (cidx = 0; cidx < chancount; cidx++)
+      triggers[bidx][cidx].ForceIdle();
 }
 
 
@@ -462,6 +500,7 @@ ProcessSamples(
   nloop_SampleSlice_t<bool,bankcount,chancount> &trigsout )
 {
   int bidx, cidx;
+  bool thisout;
 
   // Reaching the end of the window drops the stimulation quota to zero.
   // We still have to call the update routine to finish pulses that are
@@ -479,11 +518,16 @@ ProcessSamples(
   for (bidx = 0; bidx < banks_active; bidx++)
     for (cidx = 0; cidx < chans_active; cidx++)
     {
-      // This checks and then updates trigger_count_left.
-      trigsout.data[bidx][cidx] = triggers[bidx][cidx].ProcessSample(
-        sampvals.data[bidx][cidx], targetvals.data[bidx][cidx],
-        periods.data[bidx][cidx], detectflags.data[bidx][cidx],
-        trigger_count_left );
+      thisout = false;
+
+      if (enabled.data[bidx][cidx])
+        // This checks and then updates trigger_count_left.
+        thisout = triggers[bidx][cidx].ProcessSample(
+          sampvals.data[bidx][cidx], targetvals.data[bidx][cidx],
+          periods.data[bidx][cidx], detectflags.data[bidx][cidx],
+          trigger_count_left );
+
+      trigsout.data[bidx][cidx] = thisout;
     }
 }
 
@@ -535,6 +579,15 @@ GetActiveChans(void)
 
 template<class indextype_t, int bankcount, int chancount>
 void nloop_TriggerBank_t<indextype_t,bankcount,chancount>::
+SetEnableFlags(
+  nloop_SampleSlice_t<bool,bankcount,chancount> &want_enabled )
+{
+  enabled.CopyFrom(want_enabled);
+}
+
+
+template<class indextype_t, int bankcount, int chancount>
+void nloop_TriggerBank_t<indextype_t,bankcount,chancount>::
 SetPulseDurations(
   nloop_SampleSlice_t<indextype_t,bankcount,chancount> &duration_samps )
 {
@@ -570,6 +623,15 @@ SetAllReRaises(bool want_reraise)
   for (bidx = 0; bidx < bankcount; bidx++)
     for (cidx = 0; cidx < chancount; cidx++)
       triggers[bidx][cidx].SetReRaise(want_reraise);
+}
+
+
+template<class indextype_t, int bankcount, int chancount>
+void nloop_TriggerBank_t<indextype_t,bankcount,chancount>::
+GetEnableFlags(
+  nloop_SampleSlice_t<bool,bankcount,chancount> &is_enabled )
+{
+  is_enabled.CopyFrom(enabled);
 }
 
 
@@ -617,6 +679,16 @@ GetReRaises(
 
 template<class indextype_t, int bankcount, int chancount>
 void nloop_TriggerBank_t<indextype_t,bankcount,chancount>::
+SetOneEnableFlag(int bankidx, int chanidx, bool want_enabled)
+{
+  if ( (bankidx >= 0) && (bankidx < bankcount)
+    && (chanidx >= 0) && (chanidx < chancount) )
+      enabled.data[bankidx][chanidx] = want_enabled;
+}
+
+
+template<class indextype_t, int bankcount, int chancount>
+void nloop_TriggerBank_t<indextype_t,bankcount,chancount>::
 SetOnePulseDuration(int bankidx, int chanidx,
   indextype_t new_duration_samps)
 {
@@ -644,6 +716,22 @@ SetOneReRaise(int bankidx, int chanidx, bool want_reraise)
   if ( (bankidx >= 0) && (bankidx < bankcount)
     && (chanidx >= 0) && (chanidx < chancount) )
     triggers[bankidx][chanidx].SetReRaise(want_reraise);
+}
+
+
+template<class indextype_t, int bankcount, int chancount>
+bool nloop_TriggerBank_t<indextype_t,bankcount,chancount>::
+GetOneEnableFlag(int bankidx, int chanidx)
+{
+  bool result;
+
+  result = false;
+
+  if ( (bankidx >= 0) && (bankidx < bankcount)
+    && (chanidx >= 0) && (chanidx < chancount) )
+      result = enabled.data[bankidx][chanidx];
+
+  return result;
 }
 
 

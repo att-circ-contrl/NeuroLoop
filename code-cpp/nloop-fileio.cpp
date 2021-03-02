@@ -10,11 +10,102 @@
 #include "nloop-includes-workstation.h"
 
 
-//
-// Utility Functions
 
 // NOTE - File I/O functions will work with any stream-type objects, not just
 // file streams.
+
+
+//
+// I/O Helper Functions
+
+
+// These check a row's contents against match criteria.
+// Match criteria are (column name, cell value) tuples.
+
+// Private implementation.
+
+void nloop_CSVRowMatchesCriteria_helper( map<string,string> &thisrow,
+  multimap<string,string> &matchcriteria,
+  bool &matches_any, bool &matches_all )
+{
+  multimap<string,string>::iterator midx, tidx, tidxend;
+  string thiskey, thisval;
+  bool criterion_ok;
+
+  matches_any = false;
+  matches_all = true;
+
+  // Special-case the empty list.
+  if (matchcriteria.empty())
+  {
+    matches_any = true;
+    matches_all = true;
+  }
+
+  // We're stepping through spans that share the same key.
+  // To increment, move to the nearest entry with a different key.
+  for ( midx = matchcriteria.begin();
+    midx != matchcriteria.end();
+    midx = matchcriteria.upper_bound(midx->first) )
+  {
+    thiskey = midx->first;
+
+    // Find the end of this span.
+    tidxend = matchcriteria.upper_bound(thiskey);
+
+    // See if we satisfy at least one of the allowed values for this
+    // key value (column name).
+    criterion_ok = false;
+    if (thisrow.count(thiskey))
+    {
+      thisval = thisrow[thiskey];
+      for (tidx = midx; tidx != tidxend; tidx++)
+        if (tidx->second == thisval)
+          criterion_ok = true;
+    }
+
+    // Update match flags.
+    matches_any = matches_any || criterion_ok;
+    matches_all = matches_all && criterion_ok;
+  }
+}
+
+
+// Wrappers for "any"/"all" public versions.
+
+bool nloop_CSVRowMatchesAnyCriteria( map<string,string> &thisrow,
+  multimap<string,string> &matchcriteria )
+{
+  bool matches_any, matches_all;
+
+  matches_any = false;
+  matches_all = false;
+
+  nloop_CSVRowMatchesCriteria_helper( thisrow, matchcriteria,
+    matches_any, matches_all );
+
+  return matches_any;
+}
+
+
+bool nloop_CSVRowMatchesAllCriteria( map<string,string> &thisrow,
+  multimap<string,string> &matchcriteria )
+{
+  bool matches_any, matches_all;
+
+  matches_any = false;
+  matches_all = false;
+
+  nloop_CSVRowMatchesCriteria_helper( thisrow, matchcriteria,
+    matches_any, matches_all );
+
+  return matches_all;
+}
+
+
+
+//
+// CSV I/O Functions
 
 
 // This reads all columns from a CSV file, discarding order information.

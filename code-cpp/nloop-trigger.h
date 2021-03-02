@@ -130,6 +130,7 @@ public:
   // Default destructor is fine.
 
   void ResetState(void);
+  void ForceIdle(void);
 
   // Processing functions.
 
@@ -163,6 +164,8 @@ protected:
 
   // Individual triggers.
   nloop_Trigger_t<indextype_t> triggers[bankcount][chancount];
+  // Per-trigger enable flags.
+  nloop_SampleSlice_t<bool,bankcount,chancount> enabled;
 
   // Active geometry.
   int banks_active;
@@ -173,6 +176,7 @@ public:
   // Default destructor is fine.
 
   void ResetState(void);
+  void ForceIdle(void);
 
   // Processing functions.
 
@@ -195,6 +199,10 @@ public:
   int GetActiveBanks(void);
   int GetActiveChans(void);
 
+
+  void SetEnableFlags(
+    nloop_SampleSlice_t<bool,bankcount,chancount> &want_enabled );
+
   void SetPulseDurations(
     nloop_SampleSlice_t<indextype_t,bankcount,chancount> &duration_samps );
   void SetPulseCooldowns(
@@ -202,6 +210,9 @@ public:
 
   void SetAllReRaises(bool want_reraise);
 
+
+  void GetEnableFlags(
+    nloop_SampleSlice_t<bool,bankcount,chancount> &is_enabled );
   void GetPulseDurations(
     nloop_SampleSlice_t<indextype_t,bankcount,chancount> &duration_samps );
   void GetPulseCooldowns(
@@ -209,12 +220,15 @@ public:
   void GetReRaises(
     nloop_SampleSlice_t<bool,bankcount,chancount> &reraise_flags );
 
+
+  void SetOneEnableFlag(int bankidx, int chanidx, bool want_enabled);
   void SetOnePulseDuration(int bankidx, int chanidx,
     indextype_t new_duration_samps);
   void SetOnePulseCooldown(int bankidx, int chanidx,
     indextype_t new_cooldown_samps);
   void SetOneReRaise(int bankidx, int chanidx, bool want_reraise);
 
+  bool GetOneEnableFlag(int bankidx, int chanidx);
   indextype_t GetOnePulseDuration(int bankidx, int chanidx);
   indextype_t GetOnePulseCooldown(int bankidx, int chanidx);
   bool GetOneReRaise(int bankidx, int chanidx);

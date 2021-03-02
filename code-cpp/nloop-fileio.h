@@ -12,11 +12,31 @@
 #define NLOOP_FILEIO_H
 
 
-//
-// Functions
 
 // NOTE - File I/O functions will work with any stream-type objects, not just
 // file streams.
+
+
+//
+// Functions
+
+
+// I/O helper functions.
+
+// This converts samptype_t to signed long long, interpreting samptype_t
+// as signed.
+template<class samptype_t> long long nloop_SampleToLL(samptype_t data);
+
+// This converts signed long long to samptype_t appropriately.
+template<class samptype_t> samptype_t nloop_LLToSample(long long data);
+
+// These check a row's contents against match criteria.
+// Match criteria are (column name, cell value) tuples.
+// An empty criteria list always matches.
+bool nloop_CSVRowMatchesAnyCriteria( map<string,string> &thisrow,
+  multimap<string,string> &matchcriteria );
+bool nloop_CSVRowMatchesAllCriteria( map<string,string> &thisrow,
+  multimap<string,string> &matchcriteria );
 
 
 // CSV I/O functions.
@@ -48,6 +68,8 @@ map<string,string> nloop_GetCSVRowCells(
 
 // CSV biquad coefficients may be negative even with unsigned samptype_t.
 
+// Reading.
+
 // Treat all table rows as applying to this filter.
 // Don't remap bank numbers.
 template<class samptype_t, class filtbanktype_t>
@@ -59,7 +81,10 @@ void nloop_ReadBiquadCoeffs(istream &infile, filtbanktype_t &filtbank);
 // Bank numbers in the remap table are remapped ( k -> bankremap[k] ).
 template<class samptype_t, class filtbanktype_t>
 void nloop_ReadBiquadCoeffs(istream &infile, filtbanktype_t &filtbank,
-  multimap<string,string> matchcriteria, map<int,int> bankremap);
+  multimap<string,string> &matchcriteria, map<int,int> &bankremap);
+
+// Writing.
+// NOTE - These only write active banks and stages.
 
 // No extra output columns.
 template<class samptype_t, class filtbanktype_t>
@@ -73,16 +98,78 @@ void nloop_WriteBiquadCoeffs(ostream &outfile, filtbanktype_t &filtbank,
   list<string> &extra_col_order, map<string,string> &extra_col_values);
 
 
+// Lookup table I/O functions.
 
-// I/O helper functions.
+// These read and write lookup table tuples.
 
-// This converts samptype_t to signed long long, interpreting samptype_t
-// as signed.
-template<class samptype_t> long long nloop_SampleToLL(samptype_t data);
+// When reading, columns unrelated to tuple address and data are ignored.
+// NOTE - Only the LUT entries listed in the CSV file are modified. Other
+// entries in the LUT are left as-is.
 
-// This converts signed long long to samptype_t appropriately.
-template<class samptype_t> samptype_t nloop_LLToSample(long long data);
+// When writing, extra columns with constant values may be added.
+// See notes/LUTVALUES.txt for file format information.
 
+// Reading.
+
+// Reading a single lookup table.
+// Treat all CSV rows as being part of this lookup table.
+template <class intype_t, class outtype_t, class luttype_t>
+void nloop_ReadLookupTableSingle( istream &infile, luttype_t &lut,
+  string infield, string outfield );
+
+// Reading a single lookup table.
+// If match criteria are supplied, only table rows that match all of the
+// specified criteria are used.
+// Match criteria are (column name, cell value) tuples.
+template <class intype_t, class outtype_t, class luttype_t>
+void nloop_ReadLookupTableSingle( istream &infile, luttype_t &lut,
+  string infield, string outfield, multimap<string,string> &matchcriteria );
+
+// Reading a class with per-bank lookup tables.
+// Treat all CSV rows as being part of this lookup table.
+// Don't remap bank numbers.
+template <class intype_t, class outtype_t, class luttype_t>
+void nloop_ReadLookupTablePerBank( istream &infile, luttype_t &lut,
+  string infield, string outfield );
+
+// Reading a class with per-bank lookup tables.
+// If match criteria are supplied, only table rows that match all of the
+// specified criteria are used.
+// Match criteria are (column name, cell value) tuples.
+// Bank numbers in the remap table are remapped ( k -> bankremap[k] ).
+template <class intype_t, class outtype_t, class luttype_t>
+void nloop_ReadLookupTablePerBank( istream &infile, luttype_t &lut,
+  string infield, string outfield,
+  multimap<string,string> &matchcriteria, map<int,int> &bankremap );
+
+// Writing.
+// NOTE - These only write active banks and rows.
+
+// Writing a single lookup table.
+// No extra output columns.
+template <class intype_t, class outtype_t, class luttype_t>
+void nloop_WriteLookupTableSingle( ostream &outfile, luttype_t &lut,
+  string infield, string outfield, bool want_header );
+
+// Writing a single lookup table.
+// With extra output columns (written before the tuple contents).
+template <class intype_t, class outtype_t, class luttype_t>
+void nloop_WriteLookupTableSingle( ostream &outfile, luttype_t &lut,
+  string infield, string outfield, bool want_header,
+  list<string> &extra_col_order, map<string,string> &extra_col_values );
+
+// Writing a class with per-bank lookup tables.
+// No extra output columns.
+template <class intype_t, class outtype_t, class luttype_t>
+void nloop_WriteLookupTablePerBank( ostream &outfile, luttype_t &lut,
+  string infield, string outfield, bool want_header );
+
+// Writing a class with per-bank lookup tables.
+// With extra output columns (written before the tuple contents).
+template <class intype_t, class outtype_t, class luttype_t>
+void nloop_WriteLookupTablePerBank( ostream &outfile, luttype_t &lut,
+  string infield, string outfield, bool want_header,
+  list<string> &extra_col_order, map<string,string> &extra_col_values );
 
 
 //

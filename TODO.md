@@ -15,11 +15,16 @@ doesn't actually know the type we should cast to.
 * (C++) Make macro constants for functions/methods that take bool arguments,
 to make code that calls them more readable.
 
+* Add "LUTVALUES.txt" format definition file (generalized burst box format).
+
 
 ## Deferred to version 2:
 
 
 ## Abbreviated changelog:
+
+* 02 Mar 2021 --
+(C++) Added lookup tables (presently used for delay calibration).
 
 * 26 Jan 2020 --
 (C++) Added trigger logic. Split "misc" into "integers" and "slices".
