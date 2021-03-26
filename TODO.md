@@ -23,6 +23,9 @@ to make code that calls them more readable.
 
 ## Abbreviated changelog:
 
+* 25 Mar 2021 --
+(C++) Fixed issue reading CSV files with CRLF under Linux.
+
 * 02 Mar 2021 --
 (C++) Added lookup tables (presently used for delay calibration).
 

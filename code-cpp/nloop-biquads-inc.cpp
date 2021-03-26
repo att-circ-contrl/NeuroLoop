@@ -15,6 +15,17 @@
 // nloop_IIRBiquad_t Class
 
 
+// Constructor.
+
+template <class samptype_t, class indextype_t>
+nloop_IIRBiquad_t<samptype_t, indextype_t>::nloop_IIRBiquad_t(void)
+{
+  // Default initialization should give zero coefficients, but force anyways.
+  BlankCoefficients();
+}
+
+
+
 // Process linear buffers.
 // NOTE - Elements [0], [-1], and [-2] are read/written.
 
@@ -97,6 +108,24 @@ void nloop_IIRBiquad_t<samptype_t, indextype_t>::ApplyBiquadOnceCircular(
 
 
 
+// Blanking accessor.
+
+template <class samptype_t, class indextype_t>
+void nloop_IIRBiquad_t<samptype_t, indextype_t>::BlankCoefficients(void)
+{
+  // Setting everything to zero gives a valid filter with zero output.
+
+  den0_bits = 0;
+  den1 = 0;
+  den2 = 0;
+
+  num0 = 0;
+  num1 = 0;
+  num0 = 0;
+}
+
+
+
 // Read accessor.
 
 template <class samptype_t, class indextype_t>
@@ -135,6 +164,18 @@ void nloop_IIRBiquad_t<samptype_t, indextype_t>::SetCoefficients(
 
 //
 // nloop_IIRBiquadChain_t Class
+
+
+// Constructor.
+
+template <class samptype_t, class indextype_t, int stagecount>
+nloop_IIRBiquadChain_t<samptype_t, indextype_t, stagecount>::
+  nloop_IIRBiquadChain_t(void)
+{
+  // Default initialization should give zero coefficients, but force anyways.
+  BlankCoefficients();
+}
+
 
 
 // Process buffers.
@@ -193,6 +234,21 @@ void nloop_IIRBiquadChain_t<samptype_t, indextype_t, stagecount>::
   stages_active = new_stages;
 }
 
+
+
+
+// Blank the filter coefficients.
+// This produces a valid filter configuration with zero output.
+
+template <class samptype_t, class indextype_t, int stagecount>
+void nloop_IIRBiquadChain_t<samptype_t, indextype_t, stagecount>::
+  BlankCoefficients(void)
+{
+  int sidx;
+
+  for (sidx = 0; sidx < stagecount; sidx++)
+    biquads[sidx].BlankCoefficients();
+}
 
 
 
@@ -266,6 +322,20 @@ void nloop_IIRBiquadChain_t<samptype_t, indextype_t, stagecount>::
 
 //
 // nloop_IIRFilterBank_t class.
+
+
+// Constructor.
+
+template <class samptype_t, class indextype_t,
+  int stagecount, int bankcount, int chancount>
+nloop_IIRFilterBank_t<samptype_t, indextype_t,
+  stagecount, bankcount, chancount>::
+  nloop_IIRFilterBank_t(void)
+{
+  // Default initialization should give zero coefficients, but force anyways.
+  BlankCoefficients();
+}
+
 
 
 // Process buffers.
@@ -388,6 +458,24 @@ void nloop_IIRFilterBank_t<samptype_t, indextype_t,
     new_banks = bankcount;
 
   banks_active = new_banks;
+}
+
+
+
+// Blank the filter coefficients.
+// This produces a valid filter configuration with zero output.
+
+template <class samptype_t, class indextype_t,
+  int stagecount, int bankcount, int chancount>
+void nloop_IIRFilterBank_t<samptype_t, indextype_t,
+  stagecount, bankcount, chancount>::
+  BlankCoefficients(void)
+{
+  int bidx, cidx;
+
+  for (bidx = 0; bidx < bankcount; bidx++)
+    for (cidx = 0; cidx < chancount; cidx++)
+      biquads[bidx][cidx].BlankCoefficients();
 }
 
 

@@ -41,8 +41,9 @@ protected:
   samptype_t num0, num1, num2;
 
 public:
-  // Default constructor and destructor are fine.
-  // Coefficients initialized to zero give a valid filter with zero output.
+  // Default initialization should give zero coefficients, but force anyways.
+  nloop_IIRBiquad_t(void);
+  // Default destructor is fine.
 
 
   // Processing functions.
@@ -61,6 +62,10 @@ public:
 
 
   // Accessors.
+
+  // This sets all coefficients to zero and den0bits to zero.
+  // This is a valid filter configuration with zero output.
+  void BlankCoefficients(void);
 
   void GetCoefficients(uint8_t &old_den0bits,
     samptype_t &old_den1, samptype_t &old_den2,
@@ -98,8 +103,9 @@ protected:
   int stages_active;
 
 public:
-  // Default constructor and destructor are fine.
-  // Filters are initialized as valid filters with zero output.
+  // Default initialization should give zero coefficients, but force anyways.
+  nloop_IIRBiquadChain_t(void);
+  // Default destructor is fine.
 
 
   // Processing functions.
@@ -114,6 +120,10 @@ public:
 
   int GetActiveStages(void);
   void SetActiveStages(int new_stages);
+
+  // This sets all coefficients to zero and den0bits to zero.
+  // This is a valid filter configuration with zero output.
+  void BlankCoefficients(void);
 
   void GetCoefficients(int stagenum,
     uint8_t &old_den0bits, samptype_t &old_den1, samptype_t &old_den2,
@@ -162,8 +172,9 @@ protected:
 
 
 public:
-  // Default constructor and destructor are fine.
-  // Filters are initialized as valid filters with zero output.
+  // Default initialization should give zero coefficients, but force anyways.
+  nloop_IIRFilterBank_t(void);
+  // Default destructor is fine.
 
 
   // Processing functions.
@@ -187,6 +198,10 @@ public:
 
   int GetActiveBanks(void);
   void SetActiveBanks(int new_banks);
+
+  // This sets all coefficients to zero and den0bits to zero.
+  // This is a valid filter configuration with zero output.
+  void BlankCoefficients(void);
 
   void GetCoefficients(int stagenum, int banknum,
     uint8_t &old_den0bits, samptype_t &old_den1, samptype_t &old_den2,

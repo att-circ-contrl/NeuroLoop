@@ -119,12 +119,15 @@ map<string,vector<string>> nloop_ReadCSV(istream &infile)
   list<string>::iterator cidx, vidx;
   string thisline;
   bool first_line;
-  regex regexnotblank, regexquoted, regexnoquotes;
+  regex regexnotnewline, regexnotblank;
+  regex regexquoted, regexnoquotes;
   regex regexquotedend, regexnoquotesend;
   smatch thismatchlist;
   bool had_match, have_string;
   string matchval;
 
+  // We need this to trim line delimiters, which don't match "." but do "\S".
+  regexnotnewline = "(.*)";
   regexnotblank = "\\S";
   // FIXME - These regexes aren't bulletproof.
   regexquoted = "\\s*\"(.*?)\"\\s*,(.*)";
@@ -146,6 +149,13 @@ map<string,vector<string>> nloop_ReadCSV(istream &infile)
     if (infile.good())
     {
       // Process this line.
+
+      // Trim delimiters. We can get "\r" at the end reading DOS-format text
+      // under Linux.
+      if (regex_search(thisline, thismatchlist, regexnotnewline))
+        thisline = thismatchlist[1];
+
+      // Proceed if not blank.
       if (regex_search(thisline, regexnotblank))
       {
         // Get this row's cell contents.
