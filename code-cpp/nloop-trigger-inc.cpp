@@ -61,6 +61,12 @@ void nloop_TargetBankZC_SelectInputs
 //
 // Phase target logic.
 
+// FIXME - Deprecated.
+// Turning zero-crossing delays into phase introduces error due to uncertain
+// period estimates, which is introduced a second time when turning the
+// phase target into a delay. Use the "ZCPhase" detector instead, which only
+// applies the uncertainty once.
+#if 0
 // This converts the nominal target phase fraction (0..255) into a
 // delay in samples (frac * period / 256), for each trigger.
 
@@ -92,6 +98,7 @@ void nloop_TargetBankPhase_SelectTargets
     }
   }
 }
+#endif
 
 
 //
