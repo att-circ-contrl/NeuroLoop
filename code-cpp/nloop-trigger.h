@@ -66,7 +66,6 @@ void nloop_TargetBankZCPhase_SelectInputsAndTargets(
   nloop_SampleSlice_t<bool,1,trigcount> &want_falling,
   nloop_SampleSlice_t<indextype_t,bankcount,chancount> &rise_delays,
   nloop_SampleSlice_t<indextype_t,bankcount,chancount> &fall_delays,
-  nloop_SampleSlice_t<indextype_t,bankcount,chancount> &phases,
   nloop_SampleSlice_t<indextype_t,bankcount,chancount> &periods,
   nloop_SampleSlice_t<indextype_t,1,trigcount> &signals_out,
   nloop_SampleSlice_t<indextype_t,1,trigcount> &nominal_targets,

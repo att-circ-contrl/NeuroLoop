@@ -162,39 +162,17 @@ HandleSample(samptype_t sampval)
 template <class samptype_t, class indextype_t>
 void nloop_Analytic_PTZC_t<samptype_t,indextype_t>::
 GetEstimatedAnalytic(samptype_t &magnitude, indextype_t &period,
-  indextype_t &since_rise_zc, indextype_t &since_fall_zc,
-  indextype_t &since_phase0)
+  indextype_t &since_rise_zc, indextype_t &since_fall_zc)
 {
-  // Copy parameters that we extracted directly.
+  // Copy the extracted parameters.
   magnitude = last_mag;
   period = last_period;
   since_rise_zc = since_rise_count;
   since_fall_zc = since_fall_count;
 
-  // Compute the phase.
-
-  if (since_rise_count > since_fall_count)
-  {
-    // We're in the negative lobe. Return falling ZC + 1/4 period.
-    since_phase0 = last_period;
-    NLOOP_ARITHSHR(since_phase0, 2);
-    since_phase0 += since_fall_count;
-  }
-  else
-  {
-    // We're in the positive lobe. Return rising ZC - 1/4 period, mod period.
-    since_phase0 = last_period;
-    NLOOP_ARITHSHR(since_phase0, 2);
-    if (since_rise_count >= since_phase0)
-      since_phase0 = since_rise_count - since_phase0;
-    else
-      since_phase0 = since_rise_count + last_period - since_phase0;
-  }
-
-  // Sanity check phase. Changes in the period estimate might have left us
-  // with a phase angle greater than the period.
-  if (since_phase0 >= last_period)
-    since_phase0 -= last_period;
+  // Don't compute any derived parameters. Let the caller do that.
+  // Doing it here hides which parameters are direct (low error) and which
+  // are derived (higher error).
 }
 
 
@@ -256,8 +234,7 @@ GetEstimatedAnalytic(
   nloop_SampleSlice_t<samptype_t, bankcount, chancount> &outmagnitude,
   nloop_SampleSlice_t<indextype_t, bankcount, chancount> &outperiod,
   nloop_SampleSlice_t<indextype_t, bankcount, chancount> &since_rise_zc,
-  nloop_SampleSlice_t<indextype_t, bankcount, chancount> &since_fall_zc,
-  nloop_SampleSlice_t<indextype_t, bankcount, chancount> &since_phase0
+  nloop_SampleSlice_t<indextype_t, bankcount, chancount> &since_fall_zc
 )
 {
   int bidx, cidx;
@@ -266,8 +243,7 @@ GetEstimatedAnalytic(
     for (cidx = 0; cidx < chans_active; cidx++)
       estimators[bidx][cidx].GetEstimatedAnalytic(
         outmagnitude.data[bidx][cidx], outperiod.data[bidx][cidx],
-        since_rise_zc.data[bidx][cidx], since_fall_zc.data[bidx][cidx],
-        since_phase0.data[bidx][cidx]
+        since_rise_zc.data[bidx][cidx], since_fall_zc.data[bidx][cidx]
       );
 }
 

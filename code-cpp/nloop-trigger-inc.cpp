@@ -112,7 +112,6 @@ void nloop_TargetBankZCPhase_SelectInputsAndTargets
   nloop_SampleSlice_t<bool,1,trigcount> &want_falling,
   nloop_SampleSlice_t<indextype_t,bankcount,chancount> &rise_delays,
   nloop_SampleSlice_t<indextype_t,bankcount,chancount> &fall_delays,
-  nloop_SampleSlice_t<indextype_t,bankcount,chancount> &phases,
   nloop_SampleSlice_t<indextype_t,bankcount,chancount> &periods,
   nloop_SampleSlice_t<indextype_t,1,trigcount> &signals_out,
   nloop_SampleSlice_t<indextype_t,1,trigcount> &nominal_targets,
@@ -132,9 +131,28 @@ void nloop_TargetBankZCPhase_SelectInputsAndTargets
     {
       if (want_phase.data[0][tidx])
       {
-        signals_out.data[0][tidx] = phases.data[bidx][cidx];
+        // Turn this into a delay relative to the rising or falling ZC.
+
+        // Figure out what we're aiming for.
+        // -64..63 is the positive lobe, 64..191 is negative lobe.
 
         thisval = nominal_targets.data[0][tidx];
+        thisval = (thisval + 64) & 0xff;
+        // 0..127 is now the positive lobe, 128..255 is the negative lobe.
+
+        if (thisval & 0x80)
+        {
+          // Negative lobe. Time since falling edge.
+          thisval &= 0x7f;
+          signals_out.data[0][tidx] = fall_delays.data[bidx][cidx];
+        }
+        else
+        {
+          // Positive lobe. Time since rising edge.
+          signals_out.data[0][tidx] = rise_delays.data[bidx][cidx];
+        }
+
+        // Convert the phase value to a delay.
         thisval *= periods.data[bidx][cidx];
         thisval >>= 8;
         targets_out.data[0][tidx] = thisval;

@@ -48,8 +48,7 @@ public:
   void SetZeroLevel(samptype_t newzero);
   void HandleSample(samptype_t sampval);
   void GetEstimatedAnalytic(samptype_t &magnitude, indextype_t &period,
-    indextype_t &since_rise_zc, indextype_t &since_fall_zc,
-    indextype_t &since_phase0);
+    indextype_t &since_rise_zc, indextype_t &since_fall_zc);
 };
 
 
@@ -92,8 +91,7 @@ public:
     nloop_SampleSlice_t<samptype_t, bankcount, chancount> &outmagnitude,
     nloop_SampleSlice_t<indextype_t, bankcount, chancount> &outperiod,
     nloop_SampleSlice_t<indextype_t, bankcount, chancount> &since_rise_zc,
-    nloop_SampleSlice_t<indextype_t, bankcount, chancount> &since_fall_zc,
-    nloop_SampleSlice_t<indextype_t, bankcount, chancount> &since_phase0
+    nloop_SampleSlice_t<indextype_t, bankcount, chancount> &since_fall_zc
   );
 
 
