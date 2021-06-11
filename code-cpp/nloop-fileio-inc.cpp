@@ -83,7 +83,7 @@ template<class samptype_t> samptype_t nloop_LLToSample(long long data)
 // These read and write IIR biquad filter bank coefficients.
 // When reading, columns unrelated to coefficients are ignored.
 // When writing, extra columns with constant values may be added.
-// See notes/BIQUADCOEFFS.txt for file format information.
+// See BIQUADCOEFFS.txt for file format information.
 
 
 // This sets all named bank and stage coefficients, active or not.
@@ -298,6 +298,227 @@ void nloop_WriteBiquadCoeffs(ostream &outfile, filtbanktype_t &filtbank,
 
 
 //
+// FIR I/O functions.
+
+// These read and write FIR filter bank coefficients.
+// When reading, columns unrelated to coefficients are ignored.
+// When writing, extra columns with constant values may be added.
+// See FIRCOEFFS.txt for file format information.
+
+// CSV FIR coefficients may be negative even with unsigned samptype_t.
+
+
+// This reads a FIR filter from a stream.
+// Treat all table rows as applying to this filter.
+// Don't remap bank numbers.
+
+template<class samptype_t, class indextype_t, class filtbanktype_t>
+void nloop_ReadFIRCoeffs(istream &infile, filtbanktype_t &filtbank,
+  uint8_t fracbits)
+{
+  multimap<string,string> criteria;
+  map<int,int> bankremap;
+
+  // Wrap the criteria-filtered bank-remapped version.
+  criteria.clear();
+  bankremap.clear();
+  nloop_ReadFIRCoeffs<samptype_t,indextype_t,filtbanktype_t>(
+    infile, filtbank, fracbits, criteria, bankremap);
+}
+
+
+
+// This reads a FIR filter from a stream.
+// If match criteria are supplied, only table rows that match all of the
+// specified criteria are used.
+// Match criteria are (column name, cell value) tuples.
+// Bank numbers in the remap table are remapped ( k -> bankremap[k] ).
+
+template<class samptype_t, class indextype_t, class filtbanktype_t>
+void nloop_ReadFIRCoeffs(istream &infile, filtbanktype_t &filtbank,
+  uint8_t fracbits,
+  multimap<string,string> &matchcriteria, map<int,int> &bankremap)
+{
+  map<string,vector<string>> tabdata;
+  map<string,vector<string>>::iterator tabcolidx;
+  map<int,string> banknames;
+  map<int,string>::iterator banknameidx;
+  regex thisregex;
+  smatch thismatchlist;
+  string thiscolname;
+  int bankidx;
+  size_t rowcount, ridx;
+  map<string,string> thisrow;
+  indextype_t coeffcount;
+
+
+  // Read the raw CSV data.
+  tabdata = nloop_ReadCSV(infile);
+
+
+  // First pass: Get column names for remapped banks.
+
+  banknames.clear();
+  thisregex = "bank\\s+(\\d+)";
+  for (tabcolidx = tabdata.begin(); tabdata.end() != tabcolidx; tabcolidx++)
+  {
+    thiscolname = tabcolidx->first;
+
+    // NOTE - "regex_match" looks for an exact match (whole line matches).
+    // "regex_search" looks for a substring that matches.
+    if (regex_match(thiscolname, thismatchlist, thisregex))
+    {
+      bankidx = stoi(thismatchlist[1]);
+
+      if (bankremap.count(bankidx))
+        bankidx = bankremap[bankidx];
+
+      banknames[bankidx] = thiscolname;
+    }
+  }
+
+
+  // Second pass: For each _column_, walk through table _rows_. Using rows
+  // that match the criteria, build a FIR.
+
+  rowcount = nloop_GetCSVRowCount(tabdata);
+
+  for (banknameidx = banknames.begin();
+    banknames.end() != banknameidx;
+    banknameidx++)
+  {
+    // Get the column name and remapped bank index for this bank.
+
+    bankidx = banknameidx->first;
+    thiscolname = banknameidx->second;
+
+
+    // Iterate through the rows, building this FIR.
+
+    filtbank.BlankOneFilter(bankidx);
+    coeffcount = 0;
+
+    for (ridx = 0; ridx < rowcount; ridx++)
+    {
+      // This fills in "" for any missing column cells.
+      // Running stoi on "" gives 0, which we can live with.
+      thisrow = nloop_GetCSVRowCells(tabdata, ridx);
+
+      if ( nloop_CSVRowMatchesAllCriteria(thisrow, matchcriteria) )
+      {
+        // FIXME - Assume 64-bit is larger than samptype_t.
+        // If the user is using uint64_t, this will lose have the range.
+
+        // This does bounds checking for us, so don't check it here.
+        filtbank.SetOneCoefficient( bankidx, coeffcount,
+          nloop_LLToSample<samptype_t>( stoll(thisrow[thiscolname]) ) );
+        coeffcount++;
+      }
+
+    } // Row iteration.
+
+    // This does bounds checking on coeffcount, so it's safe.
+    filtbank.SetOneGeometry(bankidx, fracbits, coeffcount);
+
+  } // Bank iteration.
+}
+
+
+
+// This writes a FIR filter to a stream.
+// NOTE - This only writes active banks.
+// NOTE - This doesn't save "fracbits"! The caller has to keep track of that.
+// No extra output columns.
+
+template<class samptype_t, class indextype_t, class filtbanktype_t>
+void nloop_WriteFIRCoeffs(ostream &outfile, filtbanktype_t &filtbank,
+  bool want_header)
+{
+  list<string> col_order;
+  map<string,string> col_values;
+
+  // Wrap the extra-columns version.
+
+  col_order.clear();
+  col_values.clear();
+  nloop_WriteFIRCoeffs<samptype_t,indextype_t,filtbanktype_t>(
+    outfile, filtbank, want_header, col_order, col_values );
+}
+
+
+
+// This writes a FIR filter to a stream.
+// NOTE - This only writes active banks.
+// NOTE - This doesn't save "fracbits"! The caller has to keep track of that.
+// With extra output columns (written before the coefficients).
+
+template<class samptype_t, class indextype_t, class filtbanktype_t>
+void nloop_WriteFIRCoeffs(ostream &outfile, filtbanktype_t &filtbank,
+  bool want_header,
+  list<string> &extra_col_order, map<string,string> &extra_col_values)
+{
+  int bankcount, bidx;
+  list<string> colnames;
+  list<string>::iterator nidx;
+  map<string,vector<string>> colseries;
+  vector<string> thiscolseries;
+  string thiscolname, thisval;
+  indextype_t coeffcount, maxcoeffcount, sidx;
+  uint8_t fracbits;
+
+  // Initialize column names.
+
+  colnames.clear();
+  for (nidx = extra_col_order.begin(); nidx != extra_col_order.end(); nidx++)
+    colnames.push_back(*nidx);
+
+
+  // Build per-bank data series.
+
+  bankcount = filtbank.GetActiveBanks();
+  colseries.clear();
+  maxcoeffcount = 0;
+
+  for (bidx = 0; bidx < bankcount; bidx++)
+  {
+    thiscolname = "bank ";
+    thiscolname += to_string(bidx);
+    colnames.push_back(thiscolname);
+
+    thiscolseries.clear();
+    filtbank.GetOneGeometry(bidx, fracbits, coeffcount);
+
+    if (coeffcount > maxcoeffcount)
+      maxcoeffcount = coeffcount;
+
+    for (sidx = 0; sidx < coeffcount; sidx++)
+      thiscolseries.push_back(
+        to_string( filtbank.GetOneCoefficient(bidx, sidx) ) );
+
+    colseries[thiscolname] = thiscolseries;
+  }
+
+  // Add the extra columns.
+
+  for (nidx = extra_col_order.begin(); nidx != extra_col_order.end(); nidx++)
+  {
+    thiscolname = *nidx;
+    thisval = extra_col_values[thiscolname];
+
+    thiscolseries.clear();
+    for (sidx = 0; sidx < maxcoeffcount; sidx++)
+      thiscolseries.push_back(thisval);
+
+    colseries[thiscolname] = thiscolseries;
+  }
+
+  // Write the table.
+  nloop_WriteCSV(outfile, colnames, colseries, want_header);
+}
+
+
+
+//
 // Lookup Table I/O Functions
 
 // These read and write lookup table tuples.
@@ -307,7 +528,7 @@ void nloop_WriteBiquadCoeffs(ostream &outfile, filtbanktype_t &filtbank,
 // entries in the LUT are left as-is.
 
 // When writing, extra columns with constant values may be added.
-// See notes/LUTVALUES.txt for file format information.
+// See LUTVALUES.txt for file format information.
 
 
 // Reading a single lookup table.

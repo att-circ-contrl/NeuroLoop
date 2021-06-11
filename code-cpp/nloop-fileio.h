@@ -64,7 +64,7 @@ map<string,string> nloop_GetCSVRowCells(
 // These read and write IIR biquad filter bank coefficients.
 // When reading, columns unrelated to coefficients are ignored.
 // When writing, extra columns with constant values may be added.
-// See notes/BIQUADCOEFFS.txt for file format information.
+// See BIQUADCOEFFS.txt for file format information.
 
 // CSV biquad coefficients may be negative even with unsigned samptype_t.
 
@@ -98,6 +98,45 @@ void nloop_WriteBiquadCoeffs(ostream &outfile, filtbanktype_t &filtbank,
   list<string> &extra_col_order, map<string,string> &extra_col_values);
 
 
+// FIR I/O functions.
+
+// These read and write FIR filter bank coefficients.
+// When reading, columns unrelated to coefficients are ignored.
+// When writing, extra columns with constant values may be added.
+// See FIRCOEFFS.txt for file format information.
+
+// CSV FIR coefficients may be negative even with unsigned samptype_t.
+
+// Reading.
+
+// Treat all table rows as applying to this filter.
+// Don't remap bank numbers.
+template<class samptype_t, class indextype_t, class filtbanktype_t>
+void nloop_ReadFIRCoeffs(istream &infile, filtbanktype_t &filtbank);
+
+// If match criteria are supplied, only table rows that match all of the
+// specified criteria are used.
+// Match criteria are (column name, cell value) tuples.
+// Bank numbers in the remap table are remapped ( k -> bankremap[k] ).
+template<class samptype_t, class indextype_t, class filtbanktype_t>
+void nloop_ReadFIRCoeffs(istream &infile, filtbanktype_t &filtbank,
+  multimap<string,string> &matchcriteria, map<int,int> &bankremap);
+
+// Writing.
+// NOTE - These only write active banks.
+
+// No extra output columns.
+template<class samptype_t, class indextype_t, class filtbanktype_t>
+void nloop_WriteFIRCoeffs(ostream &outfile, filtbanktype_t &filtbank,
+  bool want_header);
+
+// With extra output columns (written before the coefficients).
+template<class samptype_t, class indextype_t, class filtbanktype_t>
+void nloop_WriteFIRCoeffs(ostream &outfile, filtbanktype_t &filtbank,
+  bool want_header,
+  list<string> &extra_col_order, map<string,string> &extra_col_values);
+
+
 // Lookup table I/O functions.
 
 // These read and write lookup table tuples.
@@ -107,7 +146,7 @@ void nloop_WriteBiquadCoeffs(ostream &outfile, filtbanktype_t &filtbank,
 // entries in the LUT are left as-is.
 
 // When writing, extra columns with constant values may be added.
-// See notes/LUTVALUES.txt for file format information.
+// See LUTVALUES.txt for file format information.
 
 // Reading.
 

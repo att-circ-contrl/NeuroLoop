@@ -146,9 +146,9 @@ void nloop_AutoRanger_t<samptype_t,indextype_t,chancount>::CalcOutput(
 
     thisval = indata.data[0][cidx];
 
-    thisval >>= thisatten;
-    // For unsigned values, this will wrap around to implement negative
-    // offsets.
+    NLOOP_ARITHSHR(thisval, thisatten);
+    // For unsigned values, this addition will wrap around to implement
+    // negative offsets.
     thisval += thisoset;
 
     outdata.data[0][cidx] = thisval;

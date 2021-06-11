@@ -25,9 +25,11 @@
 
 #include "nloop-integers.h"
 #include "nloop-slices.h"
+#include "nloop-math.h"
 #include "nloop-lutmap.h"
 #include "nloop-preproc.h"
 #include "nloop-biquads.h"
+#include "nloop-fir.h"
 #include "nloop-analytic-pt.h"
 #include "nloop-threshold.h"
 #include "nloop-trigger.h"

@@ -29,7 +29,7 @@
 // signed data (sign-preserving shift).
 // The sign-safe code is slower but doesn't rely on the compiler.
 //
-// The index type is used for indexing and masking with circular buffers.
+// The index type is used for indexing and for masking with circular buffers.
 // It's typically an unsigned integer type.
 
 template <class samptype_t, class indextype_t> class nloop_IIRBiquad_t
