@@ -20,6 +20,8 @@ to make code that calls them more readable.
 
 ## Deferred to version 2:
 
+* Add support for template-matching (e.g. Zanos 2018, Bruegger 2021).
+
 
 ## Abbreviated changelog:
 

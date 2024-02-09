@@ -1,0 +1,19 @@
+// Attention Circuits Control Laboratory - NeuroLoop project
+//
+// Written by Christopher Thomas.
+// Copyright (c) 2020 by Vanderbilt University. This work is licensed under
+// the Creative Commons Attribution 4.0 International License.
+
+
+// NOTE - Because this implements template code, it has to be included by
+// every file that instantiates templates.
+// Only one copy of each instantiated variant will actually be compiled;
+// extra copies get pruned at link-time.
+
+
+//
+// Classes
+
+
+//
+// This is the end of the file.

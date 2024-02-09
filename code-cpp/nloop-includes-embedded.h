@@ -23,10 +23,14 @@
 //
 // NeuroLoop includes.
 
+// Data types and primitive operations.
 #include "nloop-integers.h"
 #include "nloop-slices.h"
 #include "nloop-math.h"
 #include "nloop-lutmap.h"
+#include "nloop-voting.h"
+
+// Signal processing modules.
 #include "nloop-preproc.h"
 #include "nloop-biquads.h"
 #include "nloop-fir.h"

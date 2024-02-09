@@ -1,0 +1,32 @@
+// Attention Circuits Control Laboratory - NeuroLoop project
+//
+// Written by Christopher Thomas.
+// Copyright (c) 2020 by Vanderbilt University. This work is licensed under
+// the Creative Commons Attribution 4.0 International License.
+
+// Wrapper.
+#ifndef NLOOP__H
+#define NLOOP__H
+
+
+//
+// Classes
+
+
+//
+// Code Inclusion
+
+// C++ compiles templated classes on-demand. The source code has to be
+// included so that the compiler can do this.
+// Only one copy of each variant will actually be compiled; extra copies get
+// pruned at link-time.
+
+#include "nloop--inc.cpp"
+
+
+// End of wrapper.
+#endif
+
+
+//
+// This is the end of the file.
